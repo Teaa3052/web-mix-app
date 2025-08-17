@@ -4,18 +4,6 @@ complex_bp = Blueprint('complex_mix', __name__)
 
 @complex_bp.route("/complex", methods=["POST"])
 def complex_mix():
-    """
-      Očekuje JSON:
-    {
-      "components": [
-        {"a": 70, "x": 0},   # intenzitet i količina (količina će se izračunati)
-        {"a": 80, "x": 0},
-        {"a": 96, "x": 0}
-      ],
-      "m": 85,   # željeni prosjek
-      "S": 230   # ukupna količina
-    }
-    """
 
     data = request.get_json()
 

@@ -1,10 +1,19 @@
 from flask import Flask, request, jsonify
 from routes.simple_mix import simple_bp
 from routes.complex_mix import complex_bp
-from flask_cors import CORS # da frontend moze slati zahtjeve 
+from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app) # omogućava CORS 
+CORS(app)
+
+# Test routes
+@app.route('/')
+def home():
+    return "Backend is working!"
+
+@app.route('/test')
+def test():
+    return jsonify({"message": "API is working!"})
 
 # registracija blueprintova
 app.register_blueprint(simple_bp, url_prefix="/api/mix")
