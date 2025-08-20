@@ -111,7 +111,7 @@ export default function SimpleMixForm() {
             }}
           >
             <TextField
-              label="Vrijednost prve komponente"
+              label="Intenzitet prve komponente"
               value={a1}
               onChange={(e) => setA1(e.target.value)}
               fullWidth={false}
@@ -120,7 +120,7 @@ export default function SimpleMixForm() {
               sx={{ maxWidth: 400, width: "100%" }}
             />
             <TextField
-              label="Vrijednost druge komponente"
+              label="Intenzitet druge komponente"
               value={a2}
               onChange={(e) => setA2(e.target.value)}
               fullWidth

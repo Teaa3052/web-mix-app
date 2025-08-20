@@ -127,6 +127,7 @@ export default function Home() {
 
             <Button
               variant="outlined"
+              onClick={() => navigate("/complex-mix")}
               sx={{
                 px: 3,
                 py: 1.5,

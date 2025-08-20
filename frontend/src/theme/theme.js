@@ -47,27 +47,38 @@ let theme = createTheme({
         },
       },
     },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 50,
-          textTransform: 'none',
-          fontWeight: 700,
-          fontSize: '1.05rem',
-          padding: '10px 20px',
-          transition: 'all 0.2s ease-in-out',
-        },
-        outlined: ({ theme }) => ({
-          borderWidth: 2,
-          color: theme.palette.text.primary,
-          borderColor: theme.palette.text.primary,
-          '&:hover': {
-            borderWidth: 2, // ne povećavaj da ne "pleše"
-            boxShadow: `0 0 0 1px ${theme.palette.text.primary}`, // optički deblji rub
-            backgroundColor: alpha(theme.palette.text.primary, 0.10),
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: 50,
+            textTransform: 'none',
+            fontWeight: 700,
+            transition: 'all 0.2s ease-in-out',
           },
-        }),
-      },
+          sizeSmall: {
+            fontSize: '0.75rem',
+            padding: '4px 12px',
+          },
+          sizeMedium: {
+            fontSize: '0.95rem',
+            padding: '8px 16px',
+          },
+          sizeLarge: {
+            fontSize: '1.05rem',
+            padding: '10px 20px',
+          },
+          outlined: ({ theme }) => ({
+            borderWidth: 1,
+            color: theme.palette.text.primary,
+            borderColor: theme.palette.text.primary,
+            '&:hover': {
+              borderWidth: 1,
+              boxShadow: `0 0 0 1px ${theme.palette.text.primary}`,
+              backgroundColor: alpha(theme.palette.text.primary, 0.10),
+            },
+          }),
+        },
+
       variants: [
         {
           // Nova, manja varijanta
