@@ -1,4 +1,3 @@
-// src/pages/ComplexMixForm.jsx
 import { API_BASE_URL } from "../config/api";
 import React, { useState } from "react";
 import {
@@ -9,12 +8,8 @@ import {
   TextField,
   Button,
   Alert,
-  FormControl,
-  ButtonGroup,
   IconButton,
-  MenuItem,
-  Select,
-  InputLabel,
+  Paper,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -25,34 +20,38 @@ import MixPieChart from "../components/MixPieChart";
 export default function ComplexMixForm() {
   const navigate = useNavigate();
 
-  const goHome = () => {
-    navigate("/");
-  };
-
   // State for components (starting with 3 components)
   const [components, setComponents] = useState([
-    { intensity: "", priority: 1 },
-    { intensity: "", priority: 2 },
-    { intensity: "", priority: 3 },
+    { intensity: "" },
+    { intensity: "" },
+    { intensity: "" },
   ]);
   
   const [totalAmount, setTotalAmount] = useState("");
   const [desiredIntensity, setDesiredIntensity] = useState("");
-  const [mixType, setMixType] = useState("standard");
   const [unitConcentration, setUnitConcentration] = useState("");
   const [unitQuantity, setUnitQuantity] = useState("");
-
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
 
+  // Helper function to convert number to ordinal word
+  const getOrdinalWord = (index) => {
+    const ordinals = ['prve', 'druge', 'treće', 'četvrte'];
+    return ordinals[index] || `${index + 1}.`;
+  };
+
+  // Helper function for calculating average intensity
+  const calculateAvgIntensity = (quantities) => {
+    const totalWeighted = quantities.reduce((sum, qty, index) => 
+      sum + (qty * parseFloat(components[index]?.intensity || 0)), 0);
+    const totalQty = quantities.reduce((sum, qty) => sum + qty, 0);
+    return totalWeighted / totalQty;
+  };
+
   const addComponent = () => {
-    setComponents([
-      ...components,
-      { 
-        intensity: "", 
-        priority: components.length + 1 
-      },
-    ]);
+    if (components.length < 4) {
+      setComponents([...components, { intensity: "" }]);
+    }
   };
 
   const removeComponent = (index) => {
@@ -68,27 +67,23 @@ export default function ComplexMixForm() {
     setComponents(newComponents);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setResult(null);
-
+  const validateInputs = () => {
     const parsedTotalAmount = parseFloat(totalAmount);
     const parsedDesiredIntensity = parseFloat(desiredIntensity);
 
     if (isNaN(parsedTotalAmount) || parsedTotalAmount <= 0) {
-      setError("Molimo unesite ispravne numeričke vrijednosti za ukupnu količinu.");
-      return;
+      setError("Molimo unesite ispravnu numeričku vrijednost za ukupnu količinu.");
+      return false;
     }
 
     if (isNaN(parsedDesiredIntensity)) {
       setError("Molimo unesite ispravnu numeričku vrijednost za željeni intenzitet.");
-      return;
+      return false;
     }
 
-    if (unitConcentration.trim() === "" || unitQuantity.trim() === "") {
+    if (!unitConcentration.trim() || !unitQuantity.trim()) {
       setError("Molimo unesite obje mjerne jedinice.");
-      return;
+      return false;
     }
 
     // Validate components
@@ -96,13 +91,19 @@ export default function ComplexMixForm() {
       const comp = components[i];
       if (!comp.intensity || isNaN(parseFloat(comp.intensity))) {
         setError(`Molimo unesite ispravnu numeričku vrijednost intenziteta za komponentu ${i + 1}.`);
-        return;
-      }
-      if (mixType === "priority" && (!comp.priority || comp.priority < 1)) {
-        setError(`Molimo unesite ispravan prioritet za komponentu ${i + 1}.`);
-        return;
+        return false;
       }
     }
+
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setResult(null);
+
+    if (!validateInputs()) return;
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/mix/complex`, {
@@ -111,12 +112,10 @@ export default function ComplexMixForm() {
         body: JSON.stringify({
           components: components.map((comp, i) => ({
             name: `Komponenta ${i + 1}`,
-            intensity: parseFloat(comp.intensity),
-            priority: mixType === "priority" ? parseInt(comp.priority) : undefined
+            intensity: parseFloat(comp.intensity)
           })),
-          total_amount: parsedTotalAmount,
-          desired_intensity: parsedDesiredIntensity,
-          mix_type: mixType,
+          total_amount: parseFloat(totalAmount),
+          desired_intensity: parseFloat(desiredIntensity),
         }),
       });
 
@@ -132,6 +131,74 @@ export default function ComplexMixForm() {
       setError("Došlo je do greške prilikom slanja zahtjeva.");
     }
   };
+
+  const renderSingleSolution = () => (
+    <Box>
+      <Typography sx={{ mt: 1 }}>
+        Ukoliko želimo dobiti {totalAmount}{unitQuantity} smjese s prosječnim intenzitetom {desiredIntensity}{unitConcentration}, potrebno je miješati:
+      </Typography>
+      
+      {result.components.map((comp, index) => (
+        <Typography key={index} sx={{ mt: 0.5, ml: 2 }}>
+          • {comp.quantity_formatted}{unitQuantity} {getOrdinalWord(index)} istovrsne komponente s intenzitetom {comp.intensity}{unitConcentration}
+        </Typography>
+      ))}
+
+      <Typography sx={{ mt: 1 }}>
+        Omjer u tom slučaju iznosi {result.simplified_ratio}.
+      </Typography>
+
+      <Typography sx={{ mt: 1 }}>
+        Grafički prikaz rješenja:
+      </Typography>
+      <MixPieChart
+        data={result.components.map(comp => ({
+          name: comp.name,
+          value: parseFloat(comp.quantity_formatted),
+          formatted: comp.quantity_formatted,
+        }))}
+        unit={unitQuantity}
+      />
+    </Box>
+  );
+
+  const renderMultipleSolutions = () => (
+    <Box>
+      {result.method_details.all_solutions.map((solution, index) => (
+        <Paper key={index} sx={{ p: 2, mb: 2, border: '1px solid #e0e0e0' }}>
+          <Typography variant="h6" color="primary" gutterBottom>
+            {solution.combination_used}
+          </Typography>
+          
+          <Typography sx={{ mt: 1 }}>
+            Ukoliko želimo dobiti {totalAmount}{unitQuantity} smjese s prosječnim intenzitetom {desiredIntensity}{unitConcentration}, potrebno je miješati:
+          </Typography>
+          
+          {solution.quantities.map((quantity, compIndex) => (
+            <Typography key={compIndex} sx={{ mt: 0.5, ml: 2 }}>
+              • {quantity.toFixed(2)}{unitQuantity} {getOrdinalWord(compIndex)} istovrsne komponente s intenzitetom {components[compIndex]?.intensity}{unitConcentration}
+            </Typography>
+          ))}
+          
+          <Typography sx={{ mt: 1 }}>
+            Omjer u tom slučaju iznosi {solution.simplified_ratio}.
+          </Typography>
+          
+          <Typography sx={{ mt: 1 }}>
+            Grafički prikaz:
+          </Typography>
+          <MixPieChart
+            data={solution.quantities.map((quantity, compIndex) => ({
+              name: `Komponenta ${compIndex + 1}`,
+              value: quantity,
+              formatted: quantity.toFixed(2),
+            }))}
+            unit={unitQuantity}
+          />
+        </Paper>
+      ))}
+    </Box>
+  );
 
   return (
     <Box
@@ -160,32 +227,6 @@ export default function ComplexMixForm() {
               mt: 1,
             }}
           >
-            {/* Mix Type Selection */}
-            <FormControl
-              component="fieldset"
-              sx={{
-                maxWidth: 400,
-                width: "100%",
-                mb: 2,
-                alignItems: "center",
-              }}
-            >
-              <ButtonGroup>
-                <Button
-                  variant={mixType === "standard" ? "contained" : "outlined"}
-                  onClick={() => setMixType("standard")}
-                >
-                  Standardno
-                </Button>
-                <Button
-                  variant={mixType === "priority" ? "contained" : "outlined"}
-                  onClick={() => setMixType("priority")}
-                >
-                  Prioritetno
-                </Button>
-              </ButtonGroup>
-            </FormControl>
-
             {/* Components */}
             <Typography variant="subtitle1" sx={{ mb: 1 }}>
               Komponente smjese:
@@ -216,34 +257,19 @@ export default function ComplexMixForm() {
                   margin="dense"
                   placeholder={`a${index + 1}`}
                 />
-
-                {mixType === "priority" && (
-                  <FormControl fullWidth margin="dense">
-                    <InputLabel>Prioritet</InputLabel>
-                    <Select
-                      value={component.priority}
-                      label="Prioritet"
-                      onChange={(e) => updateComponent(index, "priority", e.target.value)}
-                    >
-                      {[...Array(components.length)].map((_, i) => (
-                        <MenuItem key={i + 1} value={i + 1}>
-                          Prioritet {i + 1} {i === 0 ? "(najviši)" : i === components.length - 1 ? "(najniži)" : ""}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
               </Box>
             ))}
 
-            <Button
-              onClick={addComponent}
-              startIcon={<AddIcon />}
-              variant="outlined"
-              sx={{ maxWidth: 400, width: "100%", mb: 2 }}
-            >
-              Dodaj komponentu
-            </Button>
+            {components.length < 4 && (
+              <Button
+                onClick={addComponent}
+                startIcon={<AddIcon />}
+                variant="outlined"
+                sx={{ maxWidth: 400, width: "100%", mb: 2 }}
+              >
+                Dodaj komponentu
+              </Button>
+            )}
 
             <TextField
               label="Željeni prosječni intenzitet"
@@ -288,13 +314,12 @@ export default function ComplexMixForm() {
               variant="contained"
               color="primary"
               sx={{ maxWidth: 200, width: "100%", backgroundColor: "#1B5FC5" }}
-              fullWidth
             >
               Izračunaj
             </Button>
           </Box>
 
-          <Button variant="compact" onClick={goHome}>
+          <Button variant="compact" onClick={() => navigate("/")}>
             <ArrowBackIcon sx={{ mr: 1, fontSize: 18 }} />
             <Typography variant="button">Početna</Typography>
           </Button>
@@ -307,34 +332,9 @@ export default function ComplexMixForm() {
 
           {result && (
             <Box sx={{ mt: 3 }}>
-              <Typography>
-                Za {totalAmount}{unitQuantity} smjese korištenjem {result.mix_type === "standard" ? "standardnog" : "prioritetnog"} miješanja, potrebno je:
-              </Typography>
-
-              {result.components.map((comp, index) => (
-                <Typography key={index} sx={{ mt: 1, ml: 2 }}>
-                  • {comp.name}: {comp.quantity_formatted}{unitQuantity} (intenzitet: {comp.intensity}{unitConcentration})
-                  {comp.priority && ` - prioritet: ${comp.priority}`}
-                </Typography>
-              ))}
-
-              <Typography sx={{ mt: 1 }}>
-                Omjer komponenti iznosi {result.simplified_ratio}.
-              </Typography>
-
-              <Typography sx={{ mt: 1 }}>
-                Prosječni intenzitet smjese: {result.average_intensity}{unitConcentration}.
-              </Typography>
-
-              <Typography sx={{ mt: 1 }}>Grafički prikaz rješenja:</Typography>
-              <MixPieChart
-                data={result.components.map(comp => ({
-                  name: comp.name,
-                  value: parseFloat(comp.quantity_formatted),
-                  formatted: comp.quantity_formatted,
-                }))}
-                unit={unitQuantity}
-              />
+              {result.method_details?.all_solutions 
+                ? renderMultipleSolutions() 
+                : renderSingleSolution()}
             </Box>
           )}
         </CardContent>
