@@ -10,7 +10,6 @@ def gcd(a, b):
 def simple_mix():
     data = request.json
     try:
-        # Parsiranje ulaza
         a1 = float(data["a1"])
         a2 = float(data["a2"])
         m = float(data["m"])

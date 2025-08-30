@@ -1,13 +1,12 @@
-// src/theme.js
 import { createTheme, alpha } from '@mui/material/styles';
-import background from '../images/background.jpg'; // prilagodi putanju
+import background from '../images/background.jpg'; 
 
 let theme = createTheme({
   palette: {
     mode: 'light',
     primary: { main: '#000000' },
     text: { primary: '#000000' },
-    background: { default: '#ffffff' }, // fallback boja
+    background: { default: '#ffffff' }, 
   },
   shape: {
     borderRadius: 25,
@@ -81,12 +80,12 @@ let theme = createTheme({
 
       variants: [
         {
-          // Nova, manja varijanta
+          
           props: { variant: 'compact' },
           style: ({ theme }) => ({
-            fontSize: '0.85rem',           // manji font
-            padding: '4px 12px',           // manji padding
-            borderRadius: 30,              // zaobljenost po želji
+            fontSize: '0.85rem',           
+            padding: '4px 12px',          
+            borderRadius: 30,              
             borderWidth: 2,
             backgroundColor: '#fff',
             border: `1px solid ${theme.palette.text.primary}`,         boxShadow: theme.shadows[2],

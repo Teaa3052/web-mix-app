@@ -33,7 +33,6 @@ export default function MixPieChart({ data, unit }) {
         },
       }}
     >
-      {/* Lijevo: graf */}
       <Box sx={{ width: "60%", height: 300 }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -62,7 +61,6 @@ export default function MixPieChart({ data, unit }) {
         </ResponsiveContainer>
       </Box>
 
-      {/* Desno: ručna legenda */}
       <Stack
         direction="column"
         spacing={1}

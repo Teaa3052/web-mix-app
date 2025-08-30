@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -68,7 +67,6 @@ export default function Home() {
           />
         </Box>
 
-        {/* Tekst + oblačići */}
         <Box sx={{ flex: 1 }}>
           <Typography variant="h3" sx={{ mb: 2 }}>
             Kalkulator smjesa

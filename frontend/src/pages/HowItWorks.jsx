@@ -1,4 +1,3 @@
-// src/pages/HowItWorks.jsx
 import React from "react";
 import { Box, Paper, Typography, Divider, Button } from "@mui/material";
 import MixPieChart from "../components/MixPieChart";

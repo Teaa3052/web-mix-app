@@ -1,4 +1,3 @@
-// src/pages/SimpleMixForm.jsx
 import { API_BASE_URL } from "../config/api";
 import React, { useState } from "react";
 import {

@@ -3,7 +3,7 @@ from flask import Blueprint, request, jsonify
 complex_bp = Blueprint('complex_mix', __name__)
 
 def gcd_multiple(numbers):
-    """Calculate GCD of multiple numbers"""
+    # Zajednički djelitelj za više brojeva
     def gcd(a, b):
         return int(b == 0 and a or gcd(b, a % b))
     
@@ -13,8 +13,8 @@ def gcd_multiple(numbers):
     return result
 
 def format_simplified_ratio(ratios):
-    """Create simplified ratio string with whole numbers"""
-    # Find the maximum number of decimal places
+    """Stvara pojednostavljeni omjer s cijelim brojevima"""
+    # Pronađi maksimalni broj decimalnih mjesta
     max_decimals = 0
     for ratio in ratios:
         str_ratio = f"{ratio:.10f}".rstrip('0')
@@ -22,14 +22,14 @@ def format_simplified_ratio(ratios):
             decimals = len(str_ratio.split('.')[1])
             max_decimals = max(max_decimals, decimals)
     
-    # Convert to integers by multiplying by 10^max_decimals
+    # Pretvori u cijele brojeve množenjem s 10^max_decimals
     multiplier = 10 ** max_decimals
     int_ratios = [round(ratio * multiplier) for ratio in ratios]
     
-    # Ensure all are positive and at least 1
+    # Osiguraj da su svi pozitivni i minimalno 1
     int_ratios = [max(1, abs(r)) for r in int_ratios]
     
-    # Find GCD to simplify
+    # Pronađi najveći zajednički djelitelj za skraćivanje
     if len(int_ratios) > 1 and all(r > 0 for r in int_ratios):
         divisor = gcd_multiple(int_ratios)
         simplified = [r // divisor for r in int_ratios]
@@ -38,7 +38,7 @@ def format_simplified_ratio(ratios):
         return " : ".join(map(str, int_ratios))
 
 def calculate_average_intensity(components_data, quantities):
-    """Calculate weighted average intensity of the mixture"""
+    """Izračunava ponderirani prosječni intenzitet smjese"""
     total_weighted_intensity = 0
     total_quantity = sum(quantities)
     
@@ -50,42 +50,42 @@ def calculate_average_intensity(components_data, quantities):
     return total_weighted_intensity / total_quantity if total_quantity > 0 else 0
 
 def generate_mix_3_components(components_data, total_amount, desired_intensity):
-    """Generate mix for 3 components"""
-    # Sort components by intensity (ascending)
+    """Generiraj smjesu za 3 komponente"""
+    # Sortiraj komponente po intenzitetu (uzlazno)
     sorted_components = sorted(components_data, key=lambda x: x['intensity'])
     intensities = [comp['intensity'] for comp in sorted_components]
     
-    # Split into worse and better components based on desired intensity
+    # Podijeli na lošije i bolje komponente prema željenom intenzitetu
     worse_components = [intensity for intensity in intensities if intensity < desired_intensity]
     better_components = [intensity for intensity in intensities if intensity > desired_intensity]
     equal_components = [intensity for intensity in intensities if intensity == desired_intensity]
     
-    # Handle case where desired intensity equals one of components
+    # Obradi slučaj gdje je željeni intenzitet jednak jednoj od komponenti
     if equal_components:
         return {"error": "Željeni intenzitet ne može biti jednak intenzitetu bilo koje komponente"}
     
-    # Calculate ratios using simple pairing method
+    # Izračunaj omjere koristeći jednostavan način sparivanja
     ratios = [0.0, 0.0, 0.0]
     
     for i, intensity in enumerate(intensities):
         if intensity in worse_components:
             ratios[i] = sum(better - desired_intensity for better in better_components)
-        else:  # better component
+        else:  # bolja komponenta
             ratios[i] = sum(desired_intensity - worse for worse in worse_components)
     
-    # Calculate quantities
+    # Izračunaj količine
     if sum(ratios) == 0:
         return {"error": "Nemoguće izračunati omjere"}
     
     k = total_amount / sum(ratios)
     quantities = [ratio * k for ratio in ratios]
     
-    # Verify average intensity
+    # Provjeri prosječni intenzitet
     avg_intensity = sum(intensities[i] * quantities[i] for i in range(3)) / sum(quantities)
     if abs(avg_intensity - desired_intensity) > 0.01:
         return {"error": f"Prosječni intenzitet {avg_intensity:.2f} ne odgovara željenom {desired_intensity}"}
     
-    # Map back to original order
+    # Mapiraj natrag na originalni redoslijed
     original_order_quantities = [0] * 3
     for i, comp in enumerate(components_data):
         for j, sorted_comp in enumerate(sorted_components):
@@ -99,23 +99,23 @@ def generate_mix_3_components(components_data, total_amount, desired_intensity):
     }
 
 def generate_mix_4_components(components_data, total_amount, desired_intensity):
-    """Generate mix for 4 components following strict textbook rules"""
-    # Sort components by intensity (ascending)
+    """Generiraj smjesu za 4 komponente prema strogim pravilima iz udžbenika"""
+    # Sortiraj komponente po intenzitetu (uzlazno)
     sorted_components = sorted(components_data, key=lambda x: x['intensity'])
     intensities = [comp['intensity'] for comp in sorted_components]
     
-    # Split into worse and better components
+    # Podijeli na lošije i bolje komponente
     worse_components = [intensity for intensity in intensities if intensity < desired_intensity]
     better_components = [intensity for intensity in intensities if intensity > desired_intensity]
     equal_components = [intensity for intensity in intensities if intensity == desired_intensity]
     
-    # Handle case where desired intensity equals one of components
+    # Obradi slučaj gdje je željeni intenzitet jednak jednoj od komponenti
     if equal_components:
-        return {"error": "Željeni intenzitet ne može biti jedan intenzitetu bilo koje komponente"}
+        return {"error": "Željeni intenzitet ne može biti jednak intentitetu bilo koje komponente"}
     
     valid_solutions = []
     
-    # Scenario 1: 2 worse + 2 better (1-to-1 pairing with 2 choices)
+    # Scenarij 1: 2 lošije + 2 bolje (1-na-1 sparivanje s 2 izbora)
     if len(worse_components) == 2 and len(better_components) == 2:
         worse_indices = [i for i, x in enumerate(intensities) if x in worse_components]
         better_indices = [i for i, x in enumerate(intensities) if x in better_components]
@@ -131,7 +131,7 @@ def generate_mix_4_components(components_data, total_amount, desired_intensity):
             k1 = total_amount / sum(ratios_1)
             quantities_1 = [r * k1 for r in ratios_1]
             
-            # Verify average intensity
+            # Provjeri prosječni intenzitet
             avg_intensity_1 = sum(intensities[i] * quantities_1[i] for i in range(4)) / sum(quantities_1)
             if abs(avg_intensity_1 - desired_intensity) < 0.01:
                 valid_solutions.append({
@@ -151,7 +151,7 @@ def generate_mix_4_components(components_data, total_amount, desired_intensity):
             k2 = total_amount / sum(ratios_2)
             quantities_2 = [r * k2 for r in ratios_2]
             
-            # Verify average intensity
+            # Provjeri prosječni intenzitet
             avg_intensity_2 = sum(intensities[i] * quantities_2[i] for i in range(4)) / sum(quantities_2)
             if abs(avg_intensity_2 - desired_intensity) < 0.01:
                 valid_solutions.append({
@@ -160,23 +160,23 @@ def generate_mix_4_components(components_data, total_amount, desired_intensity):
                     'combination': 'Drugi izbor'
                 })
     
-    # Scenario 2: 3 worse + 1 better (each worse pairs with same better)
+    # Scenarij 2: 3 lošije + 1 bolja (svaka lošija se sparuje s istom boljom)
     elif len(worse_components) == 3 and len(better_components) == 1:
         ratios = [0.0, 0.0, 0.0, 0.0]
         
-        # Each worse component pairs with the single better component
-        # Better component gets sum of all pairing ratios
+        # Svaka lošija komponenta se sparuje s jedinom boljom komponentom
+        # Bolja komponenta dobiva zbroj svih omjera sparivanja
         for i, intensity in enumerate(intensities):
             if intensity in worse_components:
                 ratios[i] = better_components[0] - desired_intensity
-            else:  # better component
+            else:  # bolja komponenta
                 ratios[i] = sum(desired_intensity - worse for worse in worse_components)
         
         if all(r > 0 for r in ratios):
             k = total_amount / sum(ratios)
             quantities = [r * k for r in ratios]
             
-            # Verify average intensity
+            # Provjeri prosječni intenzitet
             avg_intensity = sum(intensities[i] * quantities[i] for i in range(4)) / sum(quantities)
             if abs(avg_intensity - desired_intensity) < 0.01:
                 valid_solutions.append({
@@ -185,23 +185,23 @@ def generate_mix_4_components(components_data, total_amount, desired_intensity):
                     'combination': 'Jedno rješenje'
                 })
     
-    # Scenario 3: 1 worse + 3 better (single worse pairs with each better)
+    # Scenarij 3: 1 lošija + 3 bolje (jedna lošija se sparuje sa svakom boljom)
     elif len(worse_components) == 1 and len(better_components) == 3:
         ratios = [0.0, 0.0, 0.0, 0.0]
         
-        # Single worse component pairs with each better component
-        # Worse component gets sum of all pairing ratios
+        # Jedna lošija komponenta se sparuje sa svakom boljom komponentom
+        # Lošija komponenta dobiva zbroj svih omjera sparivanja
         for i, intensity in enumerate(intensities):
             if intensity in worse_components:
                 ratios[i] = sum(better - desired_intensity for better in better_components)
-            else:  # better component
+            else:  # bolja komponenta
                 ratios[i] = desired_intensity - worse_components[0]
         
         if all(r > 0 for r in ratios):
             k = total_amount / sum(ratios)
             quantities = [r * k for r in ratios]
             
-            # Verify average intensity
+            # Provjeri prosječni intenzitet
             avg_intensity = sum(intensities[i] * quantities[i] for i in range(4)) / sum(quantities)
             if abs(avg_intensity - desired_intensity) < 0.01:
                 valid_solutions.append({
@@ -210,11 +210,11 @@ def generate_mix_4_components(components_data, total_amount, desired_intensity):
                     'combination': 'Jedno rješenje'
                 })
     
-    # Return solutions
+    # Vrati rješenja
     if not valid_solutions:
         return {"error": f"Nema valjalnih rješenja za željeni intenzitet {desired_intensity}"}
     
-    # Map all solutions back to original order
+    # Mapiraj sva rješenja natrag na originalni redoslijed
     all_solutions_mapped = []
     for solution in valid_solutions:
         original_order_quantities = [0] * 4
@@ -241,25 +241,25 @@ def complex_mix():
     data = request.json
     
     try:
-        # Parse input
+        # Parsiraj ulaz
         components = data.get("components", [])
         total_amount = float(data.get("total_amount", 0))
         desired_intensity = float(data.get("desired_intensity"))
         
-        # Validation
+        # Validacija
         if len(components) not in [3, 4]:
             return jsonify({"error": "Podržano je točno 3 ili 4 komponente"}), 400
             
         if total_amount <= 0:
             return jsonify({"error": "Ukupna količina mora biti veća od 0"}), 400
 
-        # Validate components
+        # Validiraj komponente
         for i, comp in enumerate(components):
             if 'intensity' not in comp:
                 return jsonify({"error": f"Komponenta {i+1} mora imati intenzitet"}), 400
             comp['intensity'] = float(comp['intensity'])
 
-        # Validate intensity range
+        # Validiraj raspon intenziteta
         intensities = [comp['intensity'] for comp in components]
         min_intensity = min(intensities)
         max_intensity = max(intensities)
@@ -269,18 +269,18 @@ def complex_mix():
                 "error": f"Željeni intenzitet {desired_intensity} mora biti između {min_intensity} i {max_intensity}"
             }), 400
         
-        # Generate mix based on component count
+        # Generiraj smjesu na temelju broja komponenti
         if len(components) == 3:
             mix_result = generate_mix_3_components(components, total_amount, desired_intensity)
-        else:  # 4 components
+        else:  # 4 komponente
             mix_result = generate_mix_4_components(components, total_amount, desired_intensity)
         
         if "error" in mix_result:
             return jsonify(mix_result), 400
         
-        # Handle different response formats
+        # Obradi različite formate odgovora
         if "all_solutions" in mix_result:
-            # Multiple solutions (4 components)
+            # Više rješenja (4 komponente)
             return jsonify({
                 "total_amount": total_amount,
                 "method_details": {
@@ -289,13 +289,13 @@ def complex_mix():
                 }
             })
         else:
-            # Single solution (3 components)
+            # Jedno rješenje (3 komponente)
             quantities = mix_result['quantities']
             avg_intensity = calculate_average_intensity(components, quantities)
             quantities_formatted = [f"{q:.2f}" for q in quantities]
             simplified_ratio = format_simplified_ratio(mix_result['ratios'])
             
-            # Prepare component results
+            # Pripremi rezultate komponenti
             component_results = []
             for i, comp in enumerate(components):
                 component_results.append({

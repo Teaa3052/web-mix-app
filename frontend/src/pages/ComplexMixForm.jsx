@@ -20,7 +20,6 @@ import MixPieChart from "../components/MixPieChart";
 export default function ComplexMixForm() {
   const navigate = useNavigate();
 
-  // State for components (starting with 3 components)
   const [components, setComponents] = useState([
     { intensity: "" },
     { intensity: "" },
@@ -34,18 +33,9 @@ export default function ComplexMixForm() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
 
-  // Helper function to convert number to ordinal word
   const getOrdinalWord = (index) => {
     const ordinals = ['prve', 'druge', 'treće', 'četvrte'];
     return ordinals[index] || `${index + 1}.`;
-  };
-
-  // Helper function for calculating average intensity
-  const calculateAvgIntensity = (quantities) => {
-    const totalWeighted = quantities.reduce((sum, qty, index) => 
-      sum + (qty * parseFloat(components[index]?.intensity || 0)), 0);
-    const totalQty = quantities.reduce((sum, qty) => sum + qty, 0);
-    return totalWeighted / totalQty;
   };
 
   const addComponent = () => {
@@ -86,7 +76,6 @@ export default function ComplexMixForm() {
       return false;
     }
 
-    // Validate components
     for (let i = 0; i < components.length; i++) {
       const comp = components[i];
       if (!comp.intensity || isNaN(parseFloat(comp.intensity))) {
